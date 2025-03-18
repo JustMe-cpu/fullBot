@@ -3,10 +3,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import sqlite3
 
-# Создание роутера
 router = Router()
 
-# Определяем состояния
 class Survey(StatesGroup):
     q1 = State()
     q2 = State()
@@ -17,7 +15,6 @@ class Survey(StatesGroup):
     q7 = State()
     q8 = State()
 
-# Подключение к базе данных
 def get_db_connection():
     conn = sqlite3.connect("survey.db")
     cursor = conn.cursor()
@@ -38,14 +35,12 @@ def get_db_connection():
     conn.commit()
     return conn
 
-# Начало опроса
 @router.message(lambda message: message.text.lower() == "опрос")
 async def start_survey(message: types.Message, state: FSMContext):
     conn = get_db_connection()
     cursor = conn.cursor()
     user_id = message.from_user.id
 
-    # Проверяем, проходил ли пользователь опрос
     cursor.execute("SELECT * FROM survey WHERE user_id = ?", (user_id,))
     existing_data = cursor.fetchone()
     if existing_data:
@@ -68,7 +63,6 @@ async def start_survey(message: types.Message, state: FSMContext):
     await state.set_state(Survey.q1)
     conn.close()
 
-# Обработчики вопросов
 @router.message(Survey.q1)
 async def survey_q1(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
@@ -117,7 +111,6 @@ async def survey_q8(message: types.Message, state: FSMContext):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Сохраняем данные в базу
     cursor.execute('''
         INSERT INTO survey (user_id, name, age, subject, color, movie, q6, q7, q8)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -135,7 +128,6 @@ async def survey_q8(message: types.Message, state: FSMContext):
     conn.commit()
     conn.close()
 
-    # Формируем итоговые ответы
     result_text = (
         f"📊 *Ваши ответы:*\n"
         f"1️⃣ Имя: {data['name']}\n"

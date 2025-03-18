@@ -1,4 +1,6 @@
 import asyncio
+import os
+import random
 
 from bs4 import BeautifulSoup
 import aiohttp
@@ -96,3 +98,10 @@ async def fetch_joke(category="Any"):
                     return f"{data['setup']}\n{data['delivery']}"
             else:
                 return "Не удалось получить шутку. Попробуйте позже."
+
+
+async def get_random_images(category: str):
+    folder_path = f"images/{category}/"
+    images = [img for img in os.listdir(folder_path) if img.endswith((".jpg", ".png"))]
+    random_images = random.sample(images, min(1, len(images)))
+    return [folder_path + img for img in random_images]
